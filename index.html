@@ -85,6 +85,24 @@ footer{display:flex;justify-content:space-between;align-items:center;padding:14p
 footer button{border:0;background:none;color:var(--muted);font:inherit;cursor:pointer}
 footer button:hover{color:var(--danger)}
 .hint{text-align:center;color:var(--muted);font-size:.78rem;margin-top:16px}
+.strength{margin-top:24px;padding:22px 24px;display:flex;align-items:center;gap:22px}
+.strength svg{width:120px;height:auto;flex-shrink:0;overflow:visible}
+.strength h2{font-size:1.05rem;font-weight:700;margin-bottom:2px}
+.strength .lvl{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px}
+.strength p{color:var(--muted);font-size:.85rem;line-height:1.4}
+.pose{transition:all .4s}
+@media(max-width:420px){.strength{flex-direction:column;text-align:center}}
+.medals{margin-top:24px;padding:22px 24px}
+.medals h2{font-size:1.05rem;font-weight:700;margin-bottom:2px}
+.medals p{color:var(--muted);font-size:.85rem;margin-bottom:18px}
+.medal-list{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.medal{text-align:center;transition:transform .2s}
+.medal svg{width:100%;max-width:84px;height:auto;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18));transition:.3s}
+.medal.locked svg{filter:grayscale(1) opacity(.35)}
+.medal:not(.locked):hover{transform:translateY(-4px) rotate(-2deg)}
+.medal b{display:block;font-size:.8rem;margin-top:6px}
+.medal small{color:var(--muted);font-size:.72rem}
+@media(max-width:420px){.medal-list{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -121,6 +139,14 @@ footer button:hover{color:var(--danger)}
       <button id="clear">Clear completed</button>
     </footer>
   </main>
+
+  <section class="strength card" id="strength"></section>
+
+  <section class="medals card">
+    <h2>Medals</h2>
+    <p>Complete tasks to unlock them.</p>
+    <div class="medal-list" id="medals"></div>
+  </section>
   <p class="hint">Double-click a task to edit it · Your tasks are saved in this browser</p>
 </div>
 
@@ -174,6 +200,74 @@ footer button:hover{color:var(--danger)}
     $('percent').textContent = pct + '%';
     $('barFill').style.width = pct + '%';
     $('clear').style.visibility = done ? 'visible' : 'hidden';
+    renderMedals(done);
+  }
+
+  const MEDALS = [
+    { name: 'Bronze',   need: 1,  c: ['#f0b27a', '#cd7f32', '#8a4f1d'] },
+    { name: 'Silver',   need: 5,  c: ['#ffffff', '#c0c4cc', '#7b818c'] },
+    { name: 'Gold',     need: 10, c: ['#fff3a6', '#f5c518', '#b8860b'] },
+    { name: 'Platinum', need: 20, c: ['#f4fbff', '#9fd3ee', '#4f8fb0'] }
+  ];
+  const LEVELS = [
+    { need: 0,  name: 'Warming up',  color: '#8a8fa8', msg: 'Complete your first task to start building mental strength.' },
+    { need: 1,  name: 'Getting started', color: '#cd7f32', msg: 'You are standing tall. Keep the momentum going!' },
+    { need: 5,  name: 'Strong',      color: '#5b5bf0', msg: 'Your discipline is showing. Keep flexing that focus!' },
+    { need: 10, name: 'Powerful',    color: '#f5a60b', msg: 'Unstoppable habits. You are a force to reckon with.' },
+    { need: 20, name: 'Unstoppable', color: '#8b5cf6', msg: 'Champion level. Total mental strength achieved!' }
+  ];
+  const ARMS = [
+    ['M46,58 L38,80 L40,98', 'M74,58 L82,80 L80,98'],
+    ['M46,58 L36,80 L34,98', 'M74,58 L84,80 L86,98'],
+    ['M46,58 L26,64 L28,42', 'M74,58 L94,64 L92,42'],
+    ['M46,58 L26,64 L28,42', 'M74,58 L94,64 L92,42'],
+    ['M46,58 L30,40 L24,20', 'M74,58 L90,40 L96,20']
+  ];
+  function figureSVG(lv) {
+    const c = LEVELS[lv].color, a = ARMS[lv], hy = lv === 0 ? 34 : 28;
+    const limb = `fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"`;
+    return `<svg viewBox="0 0 120 140" role="img" aria-label="Person showing ${LEVELS[lv].name} mental strength">
+      ${lv >= 3 ? `<circle cx="60" cy="72" r="62" fill="${c}" opacity=".14"/><circle cx="60" cy="72" r="48" fill="${c}" opacity=".12"/>` : ''}
+      <g class="pose">
+        <path d="M60,48 L60,90" ${limb} stroke-width="16"/>
+        <path d="M60,90 L48,128" ${limb}/><path d="M60,90 L72,128" ${limb}/>
+        <path d="${a[0]}" ${limb}/><path d="${a[1]}" ${limb}/>
+        <circle cx="60" cy="${hy}" r="15" fill="#f1c9a5"/>
+        <path d="M45,${hy - 2} Q60,${hy - 22} 75,${hy - 2} Q60,${hy - 10} 45,${hy - 2}Z" fill="#3b2f2f"/>
+        <circle cx="55" cy="${hy + 2}" r="1.6" fill="#3b2f2f"/><circle cx="65" cy="${hy + 2}" r="1.6" fill="#3b2f2f"/>
+        <path d="${lv === 0 ? `M55,${hy + 9} Q60,${hy + 6} 65,${hy + 9}` : `M54,${hy + 7} Q60,${hy + 13} 66,${hy + 7}`}" fill="none" stroke="#3b2f2f" stroke-width="1.8" stroke-linecap="round"/>
+        ${lv === 4 ? `<polygon points="60,-14 64,-4 75,-3 67,4 69,15 60,9 51,15 53,4 45,-3 56,-4" fill="#f5c518"/>` : ''}
+      </g></svg>`;
+  }
+  function renderStrength(best) {
+    let lv = 0; LEVELS.forEach((l, i) => { if (best >= l.need) lv = i; });
+    const next = LEVELS[lv + 1];
+    $('strength').innerHTML = `${figureSVG(lv)}<div><h2>Mental strength</h2>
+      <div class="lvl" style="color:${LEVELS[lv].color}">${LEVELS[lv].name}</div>
+      <p>${LEVELS[lv].msg}${next ? ` Next level: ${next.need - best} more task${next.need - best > 1 ? 's' : ''}.` : ''}</p></div>`;
+  }
+  const BEST = 'todo-best';
+  const medalSVG = (m, i) => `
+    <svg viewBox="0 0 100 120" role="img" aria-label="${m.name} medal">
+      <defs>
+        <radialGradient id="mg${i}" cx="35%" cy="30%" r="80%">
+          <stop offset="0" stop-color="${m.c[0]}"/><stop offset=".55" stop-color="${m.c[1]}"/><stop offset="1" stop-color="${m.c[2]}"/>
+        </radialGradient>
+      </defs>
+      <polygon points="28,0 50,0 58,46 38,46" fill="#5b5bf0"/>
+      <polygon points="72,0 50,0 42,46 62,46" fill="#8b5cf6"/>
+      <circle cx="50" cy="76" r="38" fill="url(#mg${i})" stroke="${m.c[2]}" stroke-width="2"/>
+      <circle cx="50" cy="76" r="29" fill="none" stroke="${m.c[2]}" stroke-opacity=".5" stroke-width="2"/>
+      <polygon points="50,56 55.9,69.5 70.5,70.8 59.4,80.4 62.8,94.7 50,87 37.2,94.7 40.6,80.4 29.5,70.8 44.1,69.5" fill="${m.c[0]}" stroke="${m.c[2]}" stroke-width="1.5"/>
+    </svg>`;
+
+  function renderMedals(done) {
+    let best = 0; try { best = +localStorage.getItem(BEST) || 0; } catch {}
+    if (done > best) { best = done; try { localStorage.setItem(BEST, best); } catch {} }
+    renderStrength(best);
+    $('medals').innerHTML = MEDALS.map((m, i) =>
+      `<div class="medal ${best >= m.need ? '' : 'locked'}">${medalSVG(m, i)}<b>${m.name}</b><small>${m.need} task${m.need > 1 ? 's' : ''} done</small></div>`
+    ).join('');
   }
 
   function startEdit(t, label) {
