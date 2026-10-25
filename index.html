@@ -85,6 +85,15 @@ footer{display:flex;justify-content:space-between;align-items:center;padding:14p
 footer button{border:0;background:none;color:var(--muted);font:inherit;cursor:pointer}
 footer button:hover{color:var(--danger)}
 .hint{text-align:center;color:var(--muted);font-size:.78rem;margin-top:16px}
+.delivery{margin-top:24px;padding:22px 24px 0;overflow:hidden}
+.delivery h2{font-size:1.05rem;font-weight:700;margin-bottom:2px}
+.delivery p{color:var(--muted);font-size:.85rem;margin-bottom:10px}
+.scene{display:block;width:calc(100% + 48px);margin:0 -24px;height:auto}
+.sky{fill:var(--bg)}
+.road{fill:#4a4f66}.lane{stroke:#e8e9f3;stroke-width:3;stroke-dasharray:14 12}
+.store{opacity:.45;transition:opacity .4s}.store.open{opacity:1}
+.store text{font:700 10px var(--font);fill:#fff;text-anchor:middle}
+#car{transform:translateX(4px);transition:transform .9s cubic-bezier(.4,.1,.2,1)}
 .strength{margin-top:24px;padding:22px 24px;display:flex;align-items:center;gap:22px}
 .strength svg{width:120px;height:auto;flex-shrink:0;overflow:visible}
 .strength h2{font-size:1.05rem;font-weight:700;margin-bottom:2px}
@@ -139,6 +148,28 @@ footer button:hover{color:var(--danger)}
       <button id="clear">Clear completed</button>
     </footer>
   </main>
+
+  <section class="delivery card">
+    <h2>Delivery run</h2>
+    <p id="deliveryText">Add tasks to load up the car.</p>
+    <svg class="scene" viewBox="0 0 520 150" role="img" aria-label="A loaded car driving past three stores">
+      <rect class="sky" x="0" y="0" width="520" height="150"/>
+      <g class="store" id="store0"><rect x="130" y="62" width="84" height="50" fill="#e0457b"/><rect x="130" y="62" width="84" height="12" fill="#b52b5c"/><rect x="140" y="84" width="26" height="28" fill="#fff" opacity=".85"/><rect x="176" y="82" width="28" height="16" fill="#ffd9e6"/><text x="172" y="58" fill="#e0457b" style="fill:var(--text)">Bakery</text></g>
+      <g class="store" id="store1"><rect x="240" y="50" width="84" height="62" fill="#22a06b"/><rect x="240" y="50" width="84" height="12" fill="#177a50"/><rect x="250" y="84" width="26" height="28" fill="#fff" opacity=".85"/><rect x="286" y="74" width="28" height="18" fill="#c9f2df"/><text x="282" y="46" style="fill:var(--text)">Market</text></g>
+      <g class="store" id="store2"><rect x="350" y="58" width="84" height="54" fill="#f5a60b"/><rect x="350" y="58" width="84" height="12" fill="#c78309"/><rect x="360" y="84" width="26" height="28" fill="#fff" opacity=".85"/><rect x="396" y="80" width="28" height="16" fill="#ffefc4"/><text x="392" y="54" style="fill:var(--text)">Shop</text></g>
+      <rect class="road" x="0" y="112" width="520" height="38"/>
+      <line class="lane" x1="0" y1="140" x2="520" y2="140"/>
+      <g id="car">
+        <rect x="26" y="40" width="26" height="18" rx="2" fill="#d9a066"/><rect x="50" y="46" width="20" height="12" rx="2" fill="#c78a4c"/><rect x="34" y="28" width="20" height="12" rx="2" fill="#e8b97e"/>
+        <path d="M28,49 H50 M44,28 V40" stroke="#9a6a35" stroke-width="2"/>
+        <path d="M2,92 Q2,78 16,76 L24,58 H70 L84,76 Q98,78 98,92 V102 H2Z" fill="#5b5bf0"/>
+        <path d="M30,62 H46 V76 H24Z M50,62 H66 L76,76 H50Z" fill="#cfe8ff"/>
+        <rect x="92" y="84" width="6" height="7" rx="2" fill="#ffe066"/>
+        <circle cx="26" cy="102" r="11" fill="#1f2340"/><circle cx="26" cy="102" r="4.5" fill="#bfc3d9"/>
+        <circle cx="76" cy="102" r="11" fill="#1f2340"/><circle cx="76" cy="102" r="4.5" fill="#bfc3d9"/>
+      </g>
+    </svg>
+  </section>
 
   <section class="strength card" id="strength"></section>
 
@@ -201,6 +232,15 @@ footer button:hover{color:var(--danger)}
     $('barFill').style.width = pct + '%';
     $('clear').style.visibility = done ? 'visible' : 'hidden';
     renderMedals(done);
+    renderCar(done, total, pct);
+  }
+
+  function renderCar(done, total, pct) {
+    $('car').style.transform = `translateX(${4 + pct / 100 * 412}px)`;
+    [33, 66, 100].forEach((p, i) => $('store' + i).classList.toggle('open', total > 0 && pct >= p));
+    $('deliveryText').textContent = !total ? 'Add tasks to load up the car.'
+      : pct === 100 ? 'All deliveries made! Every store is open 🎉'
+      : `${done} of ${total} tasks delivered. Keep the car rolling!`;
   }
 
   const MEDALS = [
